@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------#
 ##################### Start of Custom Login Profile #####################
-# Works with Red Hat / Rocky Linux / Ubuntu / Raspberry Pi OS           #
-# Last Updated: 28 December 2023                                        #
+# Works with Ubuntu 20.04 (Tested)				        #
+# Last Updated: 2 December 2024                                         #
 #-----------------------------------------------------------------------#
 
 CURRENT_USER=$(whoami)
@@ -23,13 +23,25 @@ function printBar() {
 	echo $output
 }
 
+echo "
+
+██╗    ██╗███████╗██╗      ██████╗ ██████╗ ███╗   ███╗███████╗██╗
+██║    ██║██╔════╝██║     ██╔════╝██╔═══██╗████╗ ████║██╔════╝██║
+██║ █╗ ██║█████╗  ██║     ██║     ██║   ██║██╔████╔██║█████╗  ██║
+██║███╗██║██╔══╝  ██║     ██║     ██║   ██║██║╚██╔╝██║██╔══╝  ╚═╝
+╚███╔███╔╝███████╗███████╗╚██████╗╚██████╔╝██║ ╚═╝ ██║███████╗██╗
+ ╚══╝╚══╝ ╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚══════╝╚═╝
+                                                    
+"
+
 tput setaf 9
-echo "`tput smso`  SERVER INFORMATION                                           `tput rmso`
+echo "`tput smso`  SERVER INFORMATION                                             `tput rmso`
 Hostname....... : $(hostname)
 IP Address..... : $(hostname -I | sed 's/[[:space:]]/, /g' | sed '$ s/, $//g')
 Release........ : $(cat /etc/*-release | grep PRETTY_NAME | grep -v grep | awk -F'=' '{print $2}' | sed -e 's/^"//' -e 's/"$//')
 Kernel......... : $(uname -sr)
-CPU............ : $(lscpu |grep -w 'Model name' | awk -F':' '{ print $2 }' | awk '{$1=$1};1')"
+CPU............ : $(lscpu | grep -w 'Model name' | awk -F':' '{ print $2 }' | awk '{$1=$1};1')
+GPU............ : $(/usr/bin/nvidia-smi --query-gpu=name --format=csv,noheader)"
 
 DISKUSED=$(df -m / | grep -v Filesystem | awk '{print $3}')
 DISKFREE=$(df -m / | grep -v Filesystem | awk '{print $4}')
@@ -46,7 +58,8 @@ SWAPFREE=$(free -m | grep Swap | awk '{print $4}')
 SWAPTOTAL=$(free -m | grep Swap | awk '{print $2}')
 SWAPPERCENTTEMP=$(awk "BEGIN {print ($SWAPUSED/$SWAPTOTAL * 100)}")
 SWAPPERCENT=$(awk -v x=$SWAPPERCENTTEMP 'BEGIN{printf "%03.2f\n", x}')
-echo "`tput smso`  SERVER STATISTICS                                            `tput rmso`
+
+echo "`tput smso`  SERVER STATISTICS                                              `tput rmso`
 Disk Usage..... : ${DISKUSED}M Used, ${DISKFREE}M Free, ${DISKTOTAL}M Total
 [$(printBar $DISKPERCENT)] ${DISKPERCENT}%
 Memory Usage... : ${MEMUSED}M Used, ${MEMFREE}M Free, ${MEMTOTAL}M Total
@@ -56,13 +69,17 @@ Swap Usage..... : ${SWAPUSED}M Used, ${SWAPFREE}M Free, ${SWAPTOTAL}M Total
 Running Process : $(ps -A --no-headers  | wc -l)
 Load Averages.. : $(cat /proc/loadavg | awk '{print $1 ", " $2 ", " $3}') (1min, 5mins, 15mins)"
 
-echo "`tput smso`  ACCESS & AVAILABILITY                                        `tput rmso`
+echo "`tput smso`  ACCESS & AVAILABILITY                                          `tput rmso`
 Uptime......... : $(uptime -p | cut -c4-)
 Last Boot...... : $(uptime -s | sed 's/[[:space:]]/, /g' | sed '$ s/, $//g')
 Current Time... : $(date +"%A, %d %B %Y, %T")
 Last Login..... : $(last -i | egrep -v 'logged|reboot' | head -1 | awk -F' ' '{print $1" ("$3") at "$6" "$5" "$7}')
 Users Logged on : $(who --count | tail -1 | awk -F'=' '{print $2}') users ($( who --count | head -1 | sed 's/[[:space:]]/, /g' | sed '$ s/, $//g'))"
 
+echo "`tput smso`                                                                 `tput rmso`"
+
 fi
 
-export PROMPT_COMMAND='PS1="\n\033[01;36m\][\D{%A %D %T}]\[\033[01;32m\]{\w}\n\[\033[01;34m\]{\[\033[1;31m\]\u\[\033[01;37m\]@\[\033[01;35m\]\h\[\033[01;34m\]}\[\033[01;36m\]# \[\033[01;33m\]"'
+# Highlight and bold terminal user@host
+PS1='\[\e[32;1m\]\u@\h\[\e[0m\]:\w\$ '
+
